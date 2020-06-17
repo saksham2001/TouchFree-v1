@@ -41,6 +41,8 @@ mask_count = 0
 
 temperature_check_completed = False
 
+operation_status_failed = False
+
 send_email = os.environ.get('SEND_EMAIL')
 if send_email == 'TRUE':
     sender_email = os.environ.get('EMAIL_ID')
@@ -278,12 +280,16 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
                             temp = sensor.get_amb_temp()
                             cv2.putText(img, 'Body Temp: {}F '.format(temp), (200, 400),
                                         cv2.FONT_HERSHEY_COMPLEX, 2, (0, 255, 0), 5)
-
-                            cv2.putText(img, 'Please Proceed! ', (200, 600),
-                                        cv2.FONT_HERSHEY_COMPLEX, 2, (0, 255, 0), 5)
-                            servoX.reset()
-                            servoY.reset()
-                            temperature_check_completed = True
+                            if temp > 100:
+                                cv2.putText(img, 'Body Temperature too High! ', (200, 600),
+                                            cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 255), 5)
+                                operation_status_failed = True
+                            else:
+                                cv2.putText(img, 'Please Proceed! ', (200, 600),
+                                            cv2.FONT_HERSHEY_COMPLEX, 2, (0, 255, 0), 5)
+                                servoX.reset()
+                                servoY.reset()
+                                temperature_check_completed = True
                         else:
                             servoX.setAngle(-1 * pidX.update(diff_x))
                             servoY.setAngle(-1 * pidY.update(diff_x))
@@ -315,6 +321,13 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
                 mask_count = 0
                 temperature_check_completed = False
                 temp = None
+            elif operation_status_failed:
+                # Reset
+                mask_detection_completed = False
+                mask_count = 0
+                temperature_check_completed = False
+                temp = None
+                operation_status_failed = False
 
         cv2.imshow('window', img)
 
