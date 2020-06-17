@@ -176,11 +176,17 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
                     cv2.putText(img, 'Body Temp: 98.6F ', (200, 400),
                                 cv2.FONT_HERSHEY_COMPLEX, 2, (0, 255, 0), 5)
 
-                    cv2.putText(img, 'Please Proceed! ', (200, 600),
-                                cv2.FONT_HERSHEY_COMPLEX, 2, (0, 255, 0), 5)
-                    servoX.reset()
-                    servoY.reset()
-                    ret = False
+                    if temp > 100:
+                        cv2.putText(img, 'Body Temperature too High! ', (200, 600),
+                                    cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 255), 5)
+                        ret = False
+                    else:
+                        cv2.putText(img, 'Please Proceed! ', (200, 600),
+                                    cv2.FONT_HERSHEY_COMPLEX, 2, (0, 255, 0), 5)
+                        servoX.reset()
+                        servoY.reset()
+                        temperature_check_completed = True
+                        ret = False
                 else:
                     servoX.setAngle(-1 * pidX.update(diff_x))
                     servoY.setAngle(-1 * pidY.update(diff_x))
@@ -216,4 +222,5 @@ servoY.stop()
 GPIO.cleanup()
 
 bus.close()
+
 
